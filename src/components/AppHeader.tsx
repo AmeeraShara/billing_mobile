@@ -136,10 +136,6 @@ export default function AppHeader() {
       route: "/billing2/sales",
     },
 
-    {
-      title: "Billing",
-      route: "/billing2/billing",
-    },
 
     {
       title: "Payment",

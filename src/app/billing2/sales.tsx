@@ -45,7 +45,7 @@ export default function Sales() {
           </View>
 
           <View style={styles.buttons}>
-            {/* ✅ UPDATED BUTTON */}
+            {/*  UPDATED BUTTON */}
             <TouchableOpacity
               style={styles.btn}
               onPress={() => router.push("/billing2/bill_item")}

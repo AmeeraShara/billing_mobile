@@ -30,7 +30,7 @@ export default StyleSheet.create({
     textAlign: "center",
     fontSize: 24,
     fontWeight: "700",
-    color: "#000099",
+    color: "#1769d2",
     marginBottom: 25,
   },
 
