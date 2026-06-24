@@ -13,6 +13,8 @@ import {
   Platform,
 } from "react-native";
 import styles from "./customerStyles";
+import apiService from "@/services/apiService";
+import { API_CONFIG } from "@/config/api"; // ✅ IMPORT THIS
 
 export default function CreateCustomer() {
   const [customerName, setCustomerName] = useState("");
@@ -21,6 +23,7 @@ export default function CreateCustomer() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
   const [errors, setErrors] = useState<{
     customerName?: string;
     nic?: string;
@@ -39,7 +42,6 @@ export default function CreateCustomer() {
       address?: string;
     } = {};
 
-    // Customer Name Validation
     const trimmedName = customerName.trim();
     if (!trimmedName) {
       newErrors.customerName = "Customer Name is required";
@@ -51,7 +53,6 @@ export default function CreateCustomer() {
       newErrors.customerName = "Name contains invalid characters";
     }
 
-    // NIC Validation (Sri Lanka)
     const trimmedNic = nic.trim().toUpperCase();
     if (!trimmedNic) {
       newErrors.nic = "NIC is required";
@@ -62,7 +63,6 @@ export default function CreateCustomer() {
       }
     }
 
-    // Mobile Validation (Sri Lanka)
     const trimmedMobile = mobile.trim();
     if (!trimmedMobile) {
       newErrors.mobile = "Mobile Number is required";
@@ -79,7 +79,6 @@ export default function CreateCustomer() {
       }
     }
 
-    // Email Validation (optional but validate if provided)
     const trimmedEmail = email.trim();
     if (trimmedEmail) {
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -90,7 +89,6 @@ export default function CreateCustomer() {
       }
     }
 
-    // Address Validation (optional but validate if provided)
     const trimmedAddress = address.trim();
     if (trimmedAddress && trimmedAddress.length < 5) {
       newErrors.address = "Address must be at least 5 characters";
@@ -110,8 +108,69 @@ export default function CreateCustomer() {
     }
   };
 
+  // TEST API Function - GET
+const testApiGet = async () => {
+  try {
+    setTestLoading(true);
+    
+    console.log('🔍 Testing API Connection...');
+    console.log('📡 API URL:', API_CONFIG.baseUrl);
+    
+    const response = await apiService.testGet({
+      test_param: 'Hello from mobile GET',
+      user_id: '12345'
+    });
+    
+    console.log('✅ GET Test Response:', response);
+    
+    if (response.success) {
+      Alert.alert(
+        '✅ API Test Successful',
+        `Message: ${response.message || 'Success'}\nTimestamp: ${response.timestamp || new Date().toISOString()}`,
+        [{ text: 'OK' }]
+      );
+    } else {
+      Alert.alert('❌ API Test Failed', response.message || 'Unknown error');
+    }
+  } catch (error) {
+    console.error('GET Test Error:', error);
+    Alert.alert('Error', 'Failed to test API. Check console for details.');
+  } finally {
+    setTestLoading(false);
+  }
+};
+  // TEST API Function - POST
+  const testApiPost = async () => {
+    try {
+      setTestLoading(true);
+      
+      const response = await apiService.testPost({
+        test_data: 'Hello from mobile POST',
+        customer_name: 'Test Customer',
+        mobile: '0712345678',
+        timestamp: new Date().toISOString()
+      });
+      
+      console.log('✅ POST Test Response:', response);
+      
+      if (response.success) {
+        Alert.alert(
+          '✅ POST API Test Successful',
+          `Message: ${response.message}\nTimestamp: ${response.timestamp}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('❌ POST API Test Failed', response.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('POST Test Error:', error);
+      Alert.alert('Error', 'Failed to test POST API');
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
   const saveCustomer = async () => {
-    // Validate form
     if (!validateForm()) {
       const firstError = Object.values(errors)[0];
       if (firstError) {
@@ -123,7 +182,6 @@ export default function CreateCustomer() {
     try {
       setLoading(true);
 
-      // Clean mobile number
       const cleanMobile = mobile.trim().replace(/[\s\-+()]/g, '');
 
       const payload = {
@@ -134,25 +192,13 @@ export default function CreateCustomer() {
         address: address.trim(),
       };
 
-      console.log("Sending Payload:", payload);
+      console.log("📤 Sending Payload:", payload);
 
-      const response = await fetch(
-        "http://localhost:8000/api/create_customer.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await apiService.createCustomer(payload);
 
-      const data = await response.json();
+      console.log("📥 API Response:", response);
 
-      console.log("API Response:", data);
-
-      if (data.success) {
-        // Reset form
+      if (response.success) {
         setCustomerName("");
         setNic("");
         setMobile("");
@@ -161,30 +207,22 @@ export default function CreateCustomer() {
         setErrors({});
         setLoading(false);
         
-        // Show brief success message
         Alert.alert(
           "✅ Success",
-          data.message || "Customer added successfully!",
+          response.message || "Customer added successfully!",
           [{ text: "OK" }]
         );
         
-        // ✅ Redirect immediately after showing alert
-        // Use setTimeout to ensure alert shows briefly
         setTimeout(() => {
           router.replace("/billing2/sales");
         }, 100);
         
       } else {
         setLoading(false);
-        // Handle validation errors from backend
-        if (data.errors && Array.isArray(data.errors)) {
-          Alert.alert("Validation Error", data.errors.join("\n"));
-        } else {
-          Alert.alert("Error", data.message || "Failed to add customer");
-        }
+        Alert.alert("Error", response.message || "Failed to add customer");
       }
     } catch (error) {
-      console.log("API Error:", error);
+      console.log("❌ API Error:", error);
       setLoading(false);
       Alert.alert(
         "Connection Error",
@@ -216,6 +254,43 @@ export default function CreateCustomer() {
 
           <Text style={styles.title}>Add New Customer</Text>
           <Text style={styles.subtitle}>Fill in the details below</Text>
+
+          <View style={styles.divider} />
+
+          {/* TEST API Buttons Section */}
+          <View style={styles.testSection}>
+            <Text style={styles.testSectionTitle}>🔧 API Test (Local)</Text>
+            <Text style={styles.helperText}>
+              URL: {API_CONFIG.baseUrl}?components=bill2&action=...
+            </Text>
+            <View style={styles.testButtonRow}>
+              <TouchableOpacity
+                style={[styles.testButton, styles.testGetButton]}
+                onPress={testApiGet}
+                disabled={testLoading || loading}
+                activeOpacity={0.7}
+              >
+                {testLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.testButtonText}>Test GET</Text>
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.testButton, styles.testPostButton]}
+                onPress={testApiPost}
+                disabled={testLoading || loading}
+                activeOpacity={0.7}
+              >
+                {testLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.testButtonText}>Test POST</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View style={styles.divider} />
 
