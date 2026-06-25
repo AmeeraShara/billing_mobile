@@ -1,20 +1,20 @@
 import AppHeader from "@/components/AppHeader";
+import { API_CONFIG } from "@/config/api";
+import apiService from "@/services/apiService";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
+  View
 } from "react-native";
 import styles from "./customerStyles";
-import apiService from "@/services/apiService";
-import { API_CONFIG } from "@/config/api"; // ✅ IMPORT THIS
 
 export default function CreateCustomer() {
   const [customerName, setCustomerName] = useState("");
@@ -24,6 +24,10 @@ export default function CreateCustomer() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
+  const [testResults, setTestResults] = useState<string>("");
+  const [resultType, setResultType] = useState<"success" | "error" | "info">(
+    "info",
+  );
   const [errors, setErrors] = useState<{
     customerName?: string;
     nic?: string;
@@ -67,12 +71,13 @@ export default function CreateCustomer() {
     if (!trimmedMobile) {
       newErrors.mobile = "Mobile Number is required";
     } else {
-      const cleanMobile = trimmedMobile.replace(/[\s\-+()]/g, '');
+      const cleanMobile = trimmedMobile.replace(/[\s\-+()]/g, "");
       const mobilePattern = /^(?:0|94)?[0-9]{9}$/;
       if (!mobilePattern.test(cleanMobile)) {
-        newErrors.mobile = "Invalid mobile format. Use 07XXXXXXXXX or 947XXXXXXXX";
+        newErrors.mobile =
+          "Invalid mobile format. Use 07XXXXXXXXX or 947XXXXXXXX";
       } else {
-        const mobileClean = cleanMobile.replace(/^(?:94)?0?/, '');
+        const mobileClean = cleanMobile.replace(/^(?:94)?0?/, "");
         if (mobileClean.length !== 9) {
           newErrors.mobile = "Mobile must have exactly 9 digits after prefix";
         }
@@ -108,63 +113,111 @@ export default function CreateCustomer() {
     }
   };
 
+  // Clear results
+  const clearResults = () => {
+    setTestResults("");
+    setResultType("info");
+  };
+
   // TEST API Function - GET
-const testApiGet = async () => {
-  try {
-    setTestLoading(true);
-    
-    console.log('🔍 Testing API Connection...');
-    console.log('📡 API URL:', API_CONFIG.baseUrl);
-    
-    const response = await apiService.testGet({
-      test_param: 'Hello from mobile GET',
-      user_id: '12345'
-    });
-    
-    console.log('✅ GET Test Response:', response);
-    
-    if (response.success) {
-      Alert.alert(
-        '✅ API Test Successful',
-        `Message: ${response.message || 'Success'}\nTimestamp: ${response.timestamp || new Date().toISOString()}`,
-        [{ text: 'OK' }]
-      );
-    } else {
-      Alert.alert('❌ API Test Failed', response.message || 'Unknown error');
+  const testApiGet = async () => {
+    try {
+      setTestLoading(true);
+      setTestResults(" Testing GET API...");
+      setResultType("info");
+
+      console.log(" Testing API Connection...");
+      console.log("API URL:", API_CONFIG.baseUrl);
+
+      const response = await apiService.testGet({
+        test_param: "Hello from mobile GET",
+        user_id: "12345",
+      });
+
+      console.log(" GET Test Response:", response);
+
+      if (response.success) {
+        const result =
+          ` GET API Test Successful!\n\n` +
+          ` URL: ${API_CONFIG.baseUrl}\n` +
+          ` Message: ${response.message || "Success"}\n` +
+          ` Timestamp: ${response.timestamp || new Date().toISOString()}\n` +
+          ` API Key: ${response.api_key_used || "N/A"}\n` +
+          ` Params: ${JSON.stringify(response.received_params, null, 2)}`;
+
+        setTestResults(result);
+        setResultType("success");
+      } else {
+        const result =
+          ` GET API Test Failed!\n\n` +
+          `Error: ${response.message || "Unknown error"}\n` +
+          `Code: ${response.error_code || "N/A"}`;
+
+        setTestResults(result);
+        setResultType("error");
+      }
+    } catch (error) {
+      console.error("GET Test Error:", error);
+      const result =
+        ` GET API Test Error!\n\n` +
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}\n` +
+        `Please check console for details.`;
+
+      setTestResults(result);
+      setResultType("error");
+    } finally {
+      setTestLoading(false);
     }
-  } catch (error) {
-    console.error('GET Test Error:', error);
-    Alert.alert('Error', 'Failed to test API. Check console for details.');
-  } finally {
-    setTestLoading(false);
-  }
-};
+  };
+
   // TEST API Function - POST
   const testApiPost = async () => {
     try {
       setTestLoading(true);
-      
-      const response = await apiService.testPost({
-        test_data: 'Hello from mobile POST',
-        customer_name: 'Test Customer',
-        mobile: '0712345678',
-        timestamp: new Date().toISOString()
-      });
-      
-      console.log('✅ POST Test Response:', response);
-      
+      setTestResults(" Testing POST API...");
+      setResultType("info");
+
+      const payload = {
+        test_data: "Hello from mobile POST",
+        customer_name: "Test Customer",
+        mobile: "0712345678",
+        timestamp: new Date().toISOString(),
+      };
+
+      const response = await apiService.testPost(payload);
+
+      console.log(" POST Test Response:", response);
+
       if (response.success) {
-        Alert.alert(
-          '✅ POST API Test Successful',
-          `Message: ${response.message}\nTimestamp: ${response.timestamp}`,
-          [{ text: 'OK' }]
-        );
+        const result =
+          ` POST API Test Successful!\n\n` +
+          ` URL: ${API_CONFIG.baseUrl}\n` +
+          ` Message: ${response.message || "Success"}\n` +
+          ` Timestamp: ${response.timestamp || new Date().toISOString()}\n` +
+          ` API Key: ${response.api_key_used || "N/A"}\n` +
+          ` Sent Data: ${JSON.stringify(payload, null, 2)}\n` +
+          ` Received: ${JSON.stringify(response.received_params, null, 2)}`;
+
+        setTestResults(result);
+        setResultType("success");
       } else {
-        Alert.alert('❌ POST API Test Failed', response.message || 'Unknown error');
+        const result =
+          ` POST API Test Failed!\n\n` +
+          `Error: ${response.message || "Unknown error"}\n` +
+          `Code: ${response.error_code || "N/A"}`;
+
+        setTestResults(result);
+        setResultType("error");
       }
     } catch (error) {
-      console.error('POST Test Error:', error);
-      Alert.alert('Error', 'Failed to test POST API');
+      console.error("POST Test Error:", error);
+      const result =
+        ` POST API Test Error!\n\n` +
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}\n` +
+        `Please check console for details.`;
+
+      setTestResults(result);
+      setResultType("error");
     } finally {
       setTestLoading(false);
     }
@@ -181,8 +234,10 @@ const testApiGet = async () => {
 
     try {
       setLoading(true);
+      setTestResults("");
+      setResultType("info");
 
-      const cleanMobile = mobile.trim().replace(/[\s\-+()]/g, '');
+      const cleanMobile = mobile.trim().replace(/[\s\-+()]/g, "");
 
       const payload = {
         customer_name: customerName.trim(),
@@ -192,11 +247,11 @@ const testApiGet = async () => {
         address: address.trim(),
       };
 
-      console.log("📤 Sending Payload:", payload);
+      console.log(" Sending Payload:", payload);
 
       const response = await apiService.createCustomer(payload);
 
-      console.log("📥 API Response:", response);
+      console.log(" API Response:", response);
 
       if (response.success) {
         setCustomerName("");
@@ -206,27 +261,56 @@ const testApiGet = async () => {
         setAddress("");
         setErrors({});
         setLoading(false);
-        
+
+        const result =
+          ` Customer Added Successfully!\n\n` +
+          ` Name: ${payload.customer_name}\n` +
+          ` NIC: ${payload.nic}\n` +
+          ` Mobile: ${payload.mobile}\n` +
+          ` Email: ${payload.email || "N/A"}\n` +
+          ` Address: ${payload.address || "N/A"}\n` +
+          ` Message: ${response.message || "Success"}`;
+
+        setTestResults(result);
+        setResultType("success");
+
         Alert.alert(
-          "✅ Success",
+          " Success",
           response.message || "Customer added successfully!",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
-        
+
         setTimeout(() => {
           router.replace("/billing2/sales");
         }, 100);
-        
       } else {
         setLoading(false);
+        const result =
+          ` Failed to Add Customer!\n\n` +
+          `Error: ${response.message || "Unknown error"}`;
+
+        setTestResults(result);
+        setResultType("error");
+
         Alert.alert("Error", response.message || "Failed to add customer");
       }
     } catch (error) {
-      console.log("❌ API Error:", error);
+      console.log(" API Error:", error);
       setLoading(false);
+
+      const result =
+        ` Connection Error!\n\n` +
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}\n` +
+        `Please check:\n` +
+        `• PHP server is running (php -S localhost:8000)\n` +
+        `• API URL: ${API_CONFIG.baseUrl}`;
+
+      setTestResults(result);
+      setResultType("error");
+
       Alert.alert(
         "Connection Error",
-        "Cannot connect to server. Please check your connection and try again."
+        "Cannot connect to server. Please check your connection and try again.",
       );
     }
   };
@@ -260,9 +344,7 @@ const testApiGet = async () => {
           {/* TEST API Buttons Section */}
           <View style={styles.testSection}>
             <Text style={styles.testSectionTitle}>🔧 API Test (Local)</Text>
-            <Text style={styles.helperText}>
-              URL: {API_CONFIG.baseUrl}?components=bill2&action=...
-            </Text>
+            <Text style={styles.helperText}>URL: {API_CONFIG.baseUrl}</Text>
             <View style={styles.testButtonRow}>
               <TouchableOpacity
                 style={[styles.testButton, styles.testGetButton]}
@@ -276,7 +358,7 @@ const testApiGet = async () => {
                   <Text style={styles.testButtonText}>Test GET</Text>
                 )}
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.testButton, styles.testPostButton]}
                 onPress={testApiPost}
@@ -289,8 +371,45 @@ const testApiGet = async () => {
                   <Text style={styles.testButtonText}>Test POST</Text>
                 )}
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.testButton, styles.testClearButton]}
+                onPress={clearResults}
+                disabled={testLoading || loading}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.testButtonText}>Clear</Text>
+              </TouchableOpacity>
             </View>
           </View>
+
+          {/* Results Display Section */}
+          {testResults ? (
+            <View
+              style={[
+                styles.resultsContainer,
+                resultType === "success" && styles.resultsSuccess,
+                resultType === "error" && styles.resultsError,
+                resultType === "info" && styles.resultsInfo,
+              ]}
+            >
+              <ScrollView
+                style={styles.resultsScroll}
+                showsVerticalScrollIndicator={true}
+              >
+                <Text
+                  style={[
+                    styles.resultsText,
+                    resultType === "success" && styles.resultsTextSuccess,
+                    resultType === "error" && styles.resultsTextError,
+                    resultType === "info" && styles.resultsTextInfo,
+                  ]}
+                >
+                  {testResults}
+                </Text>
+              </ScrollView>
+            </View>
+          ) : null}
 
           <View style={styles.divider} />
 
@@ -379,7 +498,9 @@ const testApiGet = async () => {
               maxLength={100}
               editable={!loading}
             />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            )}
           </View>
 
           {/* Address */}

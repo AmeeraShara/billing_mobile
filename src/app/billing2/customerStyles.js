@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export default StyleSheet.create({
   container: {
@@ -14,10 +14,7 @@ export default StyleSheet.create({
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
     elevation: 3,
   },
   backButton: {
@@ -138,6 +135,45 @@ export default StyleSheet.create({
     gap: 10,
     marginTop: 8,
   },
+  // Results Display
+  resultsContainer: {
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+    minHeight: 80,
+    maxHeight: 300,
+    borderWidth: 1,
+  },
+  resultsSuccess: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#22C55E',
+  },
+  resultsError: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#EF4444',
+  },
+  resultsInfo: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#3B82F6',
+  },
+  resultsScroll: {
+    maxHeight: 280,
+  },
+  resultsText: {
+    fontSize: 13,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    lineHeight: 18,
+  },
+  resultsTextSuccess: {
+    color: '#166534',
+  },
+  resultsTextError: {
+    color: '#991B1B',
+  },
+  resultsTextInfo: {
+    color: '#1E40AF',
+  },
+  // Test Buttons
   testButton: {
     flex: 1,
     paddingVertical: 10,
@@ -147,31 +183,20 @@ export default StyleSheet.create({
     minHeight: 44,
   },
   testGetButton: {
-    backgroundColor: '#4A90E2',
-    marginRight: 5,
+    backgroundColor: '#3B82F6',
+    marginRight: 4,
   },
   testPostButton: {
-    backgroundColor: '#34C759',
-    marginLeft: 5,
+    backgroundColor: '#22C55E',
+    marginRight: 4,
+  },
+  testClearButton: {
+    backgroundColor: '#6B7280',
+    flex: 0.5,
   },
   testButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
-  // customerStyles.ts - Update the card style
-card: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 12,
-  padding: 20,
-  marginBottom: 20,
-  // Replace shadow* with boxShadow
-  boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
-  // Remove these lines:
-  // shadowColor: '#000',
-  // shadowOffset: { width: 0, height: 2 },
-  // shadowOpacity: 0.1,
-  // shadowRadius: 4,
-  elevation: 3, // Keep this for Android
-},
 });
