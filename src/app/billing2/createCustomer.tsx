@@ -126,15 +126,12 @@ export default function CreateCustomer() {
       setTestResults(" Testing GET API...");
       setResultType("info");
 
-      console.log(" Testing API Connection...");
-      console.log("API URL:", API_CONFIG.baseUrl);
-
+     
       const response = await apiService.testGet({
         name: "Hello from mobile GET",
         user_id: "12345",
       });
 
-      console.log(" GET Test Response:", response);
 
       if (response.success) {
         const result =
@@ -142,7 +139,7 @@ export default function CreateCustomer() {
           `URL: ${API_CONFIG.baseUrl}\n` +
           ` Message: ${response.message || "Success"}\n` +
           ` Timestamp: ${response.timestamp || new Date().toISOString()}\n` +
-          ` API Key: ${response.api_key_used || "N/A"}\n` +
+          // ` API Key: ${response.api_key_used || "N/A"}\n` +
           ` Params: ${JSON.stringify(response.received_params, null, 2)}`;
 
         setTestResults(result);
@@ -186,7 +183,6 @@ export default function CreateCustomer() {
 
       const response = await apiService.testPost(payload);
 
-      console.log(" POST Test Response:", response);
 
       if (response.success) {
         const result =
@@ -247,11 +243,9 @@ export default function CreateCustomer() {
         address: address.trim(),
       };
 
-      console.log(" Sending Payload:", payload);
 
       const response = await apiService.createCustomer(payload);
 
-      console.log(" API Response:", response);
 
       if (response.success) {
         // Clear form
@@ -276,7 +270,7 @@ export default function CreateCustomer() {
         setResultType("success");
 
         Alert.alert(
-          "✅ Success",
+          "Success",
           response.message || "Customer added successfully!",
           [
             {
@@ -288,7 +282,7 @@ export default function CreateCustomer() {
       } else {
         setLoading(false);
         const result =
-          `❌ Failed to Add Customer!\n\n` +
+          ` Failed to Add Customer!\n\n` +
           `Error: ${response.message || "Unknown error"}\n` +
           `Code: ${response.error_code || "N/A"}`;
 
@@ -298,11 +292,10 @@ export default function CreateCustomer() {
         Alert.alert("Error", response.message || "Failed to add customer");
       }
     } catch (error) {
-      console.log("❌ API Error:", error);
       setLoading(false);
 
       const result =
-        `🚨 Connection Error!\n\n` +
+        ` Connection Error!\n\n` +
         `Error: ${error instanceof Error ? error.message : "Unknown error"}\n` +
         `Please check:\n` +
         `• Internet connection\n` +
@@ -348,7 +341,7 @@ export default function CreateCustomer() {
           {/* TEST API Buttons Section */}
           <View style={styles.testSection}>
             <Text style={styles.testSectionTitle}>🔧 API Test (Remote)</Text>
-            <Text style={styles.helperText}>🌐 {API_CONFIG.baseUrl}</Text>
+            <Text style={styles.helperText}> {API_CONFIG.baseUrl}</Text>
             <View style={styles.testButtonRow}>
               <TouchableOpacity
                 style={[styles.testButton, styles.testGetButton]}
