@@ -12,7 +12,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import styles from "./customerStyles";
 
@@ -130,7 +130,7 @@ export default function CreateCustomer() {
       console.log("API URL:", API_CONFIG.baseUrl);
 
       const response = await apiService.testGet({
-        test_param: "Hello from mobile GET",
+        name: "Hello from mobile GET",
         user_id: "12345",
       });
 
@@ -138,8 +138,8 @@ export default function CreateCustomer() {
 
       if (response.success) {
         const result =
-          ` GET API Test Successful!\n\n` +
-          ` URL: ${API_CONFIG.baseUrl}\n` +
+          `GET API Test Successful!\n\n` +
+          `URL: ${API_CONFIG.baseUrl}\n` +
           ` Message: ${response.message || "Success"}\n` +
           ` Timestamp: ${response.timestamp || new Date().toISOString()}\n` +
           ` API Key: ${response.api_key_used || "N/A"}\n` +
@@ -157,7 +157,7 @@ export default function CreateCustomer() {
         setResultType("error");
       }
     } catch (error) {
-      console.error("GET Test Error:", error);
+      console.error(" GET Test Error:", error);
       const result =
         ` GET API Test Error!\n\n` +
         `Error: ${error instanceof Error ? error.message : "Unknown error"}\n` +
@@ -210,7 +210,7 @@ export default function CreateCustomer() {
         setResultType("error");
       }
     } catch (error) {
-      console.error("POST Test Error:", error);
+      console.error(" POST Test Error:", error);
       const result =
         ` POST API Test Error!\n\n` +
         `Error: ${error instanceof Error ? error.message : "Unknown error"}\n` +
@@ -254,6 +254,7 @@ export default function CreateCustomer() {
       console.log(" API Response:", response);
 
       if (response.success) {
+        // Clear form
         setCustomerName("");
         setNic("");
         setMobile("");
@@ -275,19 +276,21 @@ export default function CreateCustomer() {
         setResultType("success");
 
         Alert.alert(
-          " Success",
+          "✅ Success",
           response.message || "Customer added successfully!",
-          [{ text: "OK" }],
+          [
+            {
+              text: "OK",
+              onPress: () => router.replace("/billing2/sales"),
+            },
+          ],
         );
-
-        setTimeout(() => {
-          router.replace("/billing2/sales");
-        }, 100);
       } else {
         setLoading(false);
         const result =
-          ` Failed to Add Customer!\n\n` +
-          `Error: ${response.message || "Unknown error"}`;
+          `❌ Failed to Add Customer!\n\n` +
+          `Error: ${response.message || "Unknown error"}\n` +
+          `Code: ${response.error_code || "N/A"}`;
 
         setTestResults(result);
         setResultType("error");
@@ -295,15 +298,16 @@ export default function CreateCustomer() {
         Alert.alert("Error", response.message || "Failed to add customer");
       }
     } catch (error) {
-      console.log(" API Error:", error);
+      console.log("❌ API Error:", error);
       setLoading(false);
 
       const result =
-        ` Connection Error!\n\n` +
+        `🚨 Connection Error!\n\n` +
         `Error: ${error instanceof Error ? error.message : "Unknown error"}\n` +
         `Please check:\n` +
-        `• PHP server is running (php -S localhost:8000)\n` +
-        `• API URL: ${API_CONFIG.baseUrl}`;
+        `• Internet connection\n` +
+        `• API URL: ${API_CONFIG.baseUrl}\n` +
+        `• Server is running`;
 
       setTestResults(result);
       setResultType("error");
@@ -343,8 +347,8 @@ export default function CreateCustomer() {
 
           {/* TEST API Buttons Section */}
           <View style={styles.testSection}>
-            <Text style={styles.testSectionTitle}>🔧 API Test (Local)</Text>
-            <Text style={styles.helperText}>URL: {API_CONFIG.baseUrl}</Text>
+            <Text style={styles.testSectionTitle}>🔧 API Test (Remote)</Text>
+            <Text style={styles.helperText}>🌐 {API_CONFIG.baseUrl}</Text>
             <View style={styles.testButtonRow}>
               <TouchableOpacity
                 style={[styles.testButton, styles.testGetButton]}
