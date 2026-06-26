@@ -199,4 +199,42 @@ export default StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  // Add these styles to your customerStyles file
+extractedDataContainer: {
+  marginTop: 12,
+  marginBottom: 8,
+  padding: 16,
+  backgroundColor: '#F0F7FF',
+  borderRadius: 8,
+  borderWidth: 1,
+  borderColor: '#BBDEFB',
+},
+extractedDataTitle: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: '#1565C0',
+  marginBottom: 12,
+},
+extractedDataItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingVertical: 6,
+  borderBottomWidth: 1,
+  borderBottomColor: '#E3F2FD',
+},
+extractedDataItemLast: {
+  borderBottomWidth: 0,
+},
+extractedDataLabel: {
+  fontSize: 14,
+  fontWeight: '500',
+  color: '#455A64',
+  width: 80,
+},
+extractedDataValue: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#1A237E',
+  flex: 1,
+},
 });

@@ -36,6 +36,10 @@ export default function CreateCustomer() {
     address?: string;
   }>({});
 
+  // New state for extracted data
+  const [extractedName, setExtractedName] = useState<string>("");
+  const [extractedUserId, setExtractedUserId] = useState<string>("");
+
   // Frontend Validation
   const validateForm = (): boolean => {
     const newErrors: {
@@ -117,6 +121,8 @@ export default function CreateCustomer() {
   const clearResults = () => {
     setTestResults("");
     setResultType("info");
+    setExtractedName("");
+    setExtractedUserId("");
   };
 
   // TEST API Function - GET
@@ -125,22 +131,31 @@ export default function CreateCustomer() {
       setTestLoading(true);
       setTestResults(" Testing GET API...");
       setResultType("info");
+      setExtractedName("");
+      setExtractedUserId("");
 
-     
+
       const response = await apiService.testGet({
-        name: "Hello from mobile GET",
-        user_id: "12345",
+        name: "Hello ",
+        user_id: "1345",
       });
 
 
       if (response.success) {
+        // Extract name and user_id from response
+        const name = response.name || response.received_params?.name || "N/A";
+        const userId = response.user_id || response.received_params?.user_id || "N/A";
+        
+        setExtractedName(name);
+        setExtractedUserId(userId);
+
         const result =
           `GET API Test Successful!\n\n` +
           `URL: ${API_CONFIG.baseUrl}\n` +
-          ` Message: ${response.message || "Success"}\n` +
-          ` Timestamp: ${response.timestamp || new Date().toISOString()}\n` +
+          `Message: ${response.message || "Success"}\n` +
+          `Timestamp: ${response.timestamp || new Date().toISOString()}\n` +
           // ` API Key: ${response.api_key_used || "N/A"}\n` +
-          ` Params: ${JSON.stringify(response.received_params, null, 2)}`;
+          `Params: ${JSON.stringify(response.received_params, null, 2)}`;
 
         setTestResults(result);
         setResultType("success");
@@ -173,6 +188,8 @@ export default function CreateCustomer() {
       setTestLoading(true);
       setTestResults(" Testing POST API...");
       setResultType("info");
+      setExtractedName("");
+      setExtractedUserId("");
 
       const payload = {
         test_data: "Hello from mobile POST",
@@ -185,6 +202,13 @@ export default function CreateCustomer() {
 
 
       if (response.success) {
+        // Extract name and user_id from response
+        const name = response.name || response.received_params?.customer_name || "N/A";
+        const userId = response.user_id || response.received_params?.user_id || "N/A";
+        
+        setExtractedName(name);
+        setExtractedUserId(userId);
+
         const result =
           ` POST API Test Successful!\n\n` +
           ` URL: ${API_CONFIG.baseUrl}\n` +
@@ -232,6 +256,8 @@ export default function CreateCustomer() {
       setLoading(true);
       setTestResults("");
       setResultType("info");
+      setExtractedName("");
+      setExtractedUserId("");
 
       const cleanMobile = mobile.trim().replace(/[\s\-+()]/g, "");
 
@@ -248,6 +274,13 @@ export default function CreateCustomer() {
 
 
       if (response.success) {
+        // Extract name and user_id from response
+        const name = response.name || response.customer_name || payload.customer_name;
+        const userId = response.user_id || response.customer_id || "N/A";
+        
+        setExtractedName(name);
+        setExtractedUserId(userId);
+
         // Clear form
         setCustomerName("");
         setNic("");
@@ -270,7 +303,7 @@ export default function CreateCustomer() {
         setResultType("success");
 
         Alert.alert(
-          "Success",
+          "✅ Success",
           response.message || "Customer added successfully!",
           [
             {
@@ -282,7 +315,7 @@ export default function CreateCustomer() {
       } else {
         setLoading(false);
         const result =
-          ` Failed to Add Customer!\n\n` +
+          `❌ Failed to Add Customer!\n\n` +
           `Error: ${response.message || "Unknown error"}\n` +
           `Code: ${response.error_code || "N/A"}`;
 
@@ -340,7 +373,7 @@ export default function CreateCustomer() {
 
           {/* TEST API Buttons Section */}
           <View style={styles.testSection}>
-            <Text style={styles.testSectionTitle}>🔧 API Test (Remote)</Text>
+            <Text style={styles.testSectionTitle}> API Test (Remote)</Text>
             <Text style={styles.helperText}> {API_CONFIG.baseUrl}</Text>
             <View style={styles.testButtonRow}>
               <TouchableOpacity
@@ -382,30 +415,46 @@ export default function CreateCustomer() {
 
           {/* Results Display Section */}
           {testResults ? (
-            <View
-              style={[
-                styles.resultsContainer,
-                resultType === "success" && styles.resultsSuccess,
-                resultType === "error" && styles.resultsError,
-                resultType === "info" && styles.resultsInfo,
-              ]}
-            >
-              <ScrollView
-                style={styles.resultsScroll}
-                showsVerticalScrollIndicator={true}
+            <>
+              <View
+                style={[
+                  styles.resultsContainer,
+                  resultType === "success" && styles.resultsSuccess,
+                  resultType === "error" && styles.resultsError,
+                  resultType === "info" && styles.resultsInfo,
+                ]}
               >
-                <Text
-                  style={[
-                    styles.resultsText,
-                    resultType === "success" && styles.resultsTextSuccess,
-                    resultType === "error" && styles.resultsTextError,
-                    resultType === "info" && styles.resultsTextInfo,
-                  ]}
+                <ScrollView
+                  style={styles.resultsScroll}
+                  showsVerticalScrollIndicator={true}
                 >
-                  {testResults}
-                </Text>
-              </ScrollView>
-            </View>
+                  <Text
+                    style={[
+                      styles.resultsText,
+                      resultType === "success" && styles.resultsTextSuccess,
+                      resultType === "error" && styles.resultsTextError,
+                      resultType === "info" && styles.resultsTextInfo,
+                    ]}
+                  >
+                    {testResults}
+                  </Text>
+                </ScrollView>
+              </View>
+
+              {/* Extracted Data Section */}
+              {(extractedName || extractedUserId) && (
+                <View style={styles.extractedDataContainer}>
+                  <View style={styles.extractedDataItem}>
+                    <Text style={styles.extractedDataLabel}>Name:</Text>
+                    <Text style={styles.extractedDataValue}>{extractedName}</Text>
+                  </View>
+                  <View style={styles.extractedDataItem}>
+                    <Text style={styles.extractedDataLabel}>User ID:</Text>
+                    <Text style={styles.extractedDataValue}>{extractedUserId}</Text>
+                  </View>
+                </View>
+              )}
+            </>
           ) : null}
 
           <View style={styles.divider} />
