@@ -136,8 +136,8 @@ export default function CreateCustomer() {
 
 
       const response = await apiService.testGet({
-        name: "Hello ",
-        user_id: "1345",
+        name: "Hello from mobile Get ",
+        user_id: "12345",
       });
 
 
@@ -303,7 +303,7 @@ export default function CreateCustomer() {
         setResultType("success");
 
         Alert.alert(
-          "✅ Success",
+          " Success",
           response.message || "Customer added successfully!",
           [
             {
@@ -315,7 +315,7 @@ export default function CreateCustomer() {
       } else {
         setLoading(false);
         const result =
-          `❌ Failed to Add Customer!\n\n` +
+          ` Failed to Add Customer!\n\n` +
           `Error: ${response.message || "Unknown error"}\n` +
           `Code: ${response.error_code || "N/A"}`;
 
